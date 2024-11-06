@@ -1,8 +1,8 @@
-"""Create trash table
+"""init database
 
-Revision ID: 0a1ab05ca1ce
+Revision ID: 4a315a1b279a
 Revises: 
-Create Date: 2024-10-31 00:30:24.387931
+Create Date: 2024-11-06 18:36:11.424104
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '0a1ab05ca1ce'
+revision: str = '4a315a1b279a'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -23,7 +23,8 @@ def upgrade() -> None:
     op.create_table('trash',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('label', sa.String(), nullable=True),
-    sa.Column('detected_at', sa.DateTime(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
+    sa.Column('detected_at', sa.DateTime(), server_default=sa.text('now()'), nullable=True),
+    sa.Column('is_collected', sa.Boolean(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_trash_id'), 'trash', ['id'], unique=False)
