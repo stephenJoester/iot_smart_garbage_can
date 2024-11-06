@@ -62,7 +62,7 @@ def classify_frame(img):
         if count / t > 0.8:
             # Send the label to a server endpoint if it appears >80% in recent frames
             try:
-                response = requests.post('http://localhost:8000/trash/', json={'label': most_common_label})
+                response = requests.post('https://iot-smart-garbage-can.vercel.app/trash/', json={'label': most_common_label})
                 if response.status_code == 200:
                     print(f'Successfully sent label to server: {most_common_label}')
                 else:

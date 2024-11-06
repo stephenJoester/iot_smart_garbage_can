@@ -3,8 +3,8 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base  
 import os
 
-sqlite_db_file = "database.db" 
-DATABASE_URL = f"sqlite:///{sqlite_db_file}"
+# sqlite_db_file = "database.db" 
+DATABASE_URL = f"postgresql://postgres.zmtahiowuduuoujdacdd:choncuonghoangquan@aws-0-us-east-1.pooler.supabase.com:6543/postgres"
 
 # create sqlite engine instance
 connect_args = {"check_same_thread": False}
