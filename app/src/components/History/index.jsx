@@ -18,37 +18,40 @@ const History = ({ trashData }) => {
     const [endValue, setEndValue] = useState(dayjs());
     const [date, setDate] = useState(null);
     const [label, setLabel] = useState("");
+    const [isCollected, setIsCollected] = useState(null);
     const selectRef1 = useRef(null);
     const selectRef2 = useRef(null);
-    const handleOnChange = (e) => {
+    const handleOnChangeLabel = (e) => {
         setLabel(e);
     };
+    const handleOnChangeStatus = (e) => {
+        setIsCollected(e === "true" ? true : e === "false" ? false : null);
+    }
     useEffect(() => {
-        if (trashData.length > 0) {
-            setFilteredData(trashData);
-        }
-    }, [trashData]);
-    useEffect(() => {
-        if (label !== "all") {
-            const filtered = trashData.filter(
-                (item) => item.label.toLowerCase() === label
+        const applyFilters = () => {
+          let filtered = trashData;
+    
+          if (label !== "all") {
+            filtered = filtered.filter((item) => item.label.toLowerCase() === label);
+          }
+    
+          if (isCollected !== null) {
+            filtered = filtered.filter((item) => item.is_collected === isCollected);
+          }
+    
+          if (startValue && endValue) {
+            filtered = filtered.filter(
+              (item) =>
+                dayjs(item.detected_at).isSameOrAfter(startValue) &&
+                dayjs(item.detected_at).isSameOrBefore(endValue)
             );
-            setFilteredData(filtered);
-        } else {
-            setFilteredData(trashData);
-        }
-    }, [label]);
-
-    useEffect(() => {
-        if (startValue && endValue) {
-            const filtered = trashData.filter(
-                (item) =>
-                    dayjs(item.detected_at).isSameOrAfter(startValue) &&
-                    dayjs(item.detected_at).isSameOrBefore(endValue)
-            );
-            setFilteredData(filtered);
-        }
-    }, [startValue, endValue]);
+          }
+    
+          setFilteredData(filtered);
+        };
+    
+        applyFilters();
+      }, [trashData, label, isCollected, startValue, endValue]);
 
     useEffect(() => {
         if (selectRef1.current) {
@@ -92,7 +95,7 @@ const History = ({ trashData }) => {
                         <div className="flex-1 !min-w-0">
                             <Select
                                 label="Select Label"
-                                onChange={handleOnChange}
+                                onChange={handleOnChangeLabel}
                                 defaultValue="All"
                                 className="w-full"
                                 ref={selectRef1}
@@ -119,10 +122,12 @@ const History = ({ trashData }) => {
                                 label="Select Status"
                                 defaultValue={"Collected"}
                                 className="w-full"
+                                onChange={handleOnChangeStatus}
                                 ref={selectRef2}
                             >
-                                <Option value="collected">Collected</Option>
-                                <Option value="not_collected">
+                                <Option value={null}>All</Option>
+                                <Option value={"true"}>Collected</Option>
+                                <Option value={"false"}>
                                     Not Collected
                                 </Option>
                             </Select>

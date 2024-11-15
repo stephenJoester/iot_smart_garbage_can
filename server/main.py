@@ -35,7 +35,7 @@ def read_root():
 @app.post("/trash/", response_model=schemas.Trash)
 def create_trash(trash: schemas.TrashCreate, db: Session = Depends(get_db)):
     try:
-        classes = ['metal', 'paper', 'plastic']
+        classes = ['paper', 'plastic', 'metal','other']
         label = trash.label
         db_trash = models.Trash(label=classes[int(label)])
         db.add(db_trash)
