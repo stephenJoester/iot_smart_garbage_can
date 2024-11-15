@@ -21,3 +21,7 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+.min-w-override .min-w-\[200px\] {
+  min-width: 0 !important;
+}

@@ -61,3 +61,32 @@ def list_trash(date: Optional[date_type] = Query(None), db: Session = Depends(ge
         return trash_items
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+    
+@app.post("/trash/full")
+def report_trash_full(db: Session = Depends(get_db)):
+    try:
+        new_notification = models.TrashFullNotification(message="The bin is full!")
+        db.add(new_notification)
+        db.commit()
+        db.refresh(new_notification)
+        return {"message": "Trash full notification recorded."}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.post("/trash/empty")
+def empty_trash(db: Session = Depends(get_db)):
+    try:
+        notification = models.TrashFullNotification(
+            message="The bin is empty!",
+            is_full=False
+        )
+        db.add(notification)
+        db.query(models.Trash).filter(models.Trash.is_collected == False).update(
+            {models.Trash.is_collected: True}, synchronize_session=False
+        )        
+        db.commit()
+        return {"message": "The bin has been emptied."}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))

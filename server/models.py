@@ -12,3 +12,9 @@ class Trash(Base) :
     detected_at = Column(DateTime, server_default=func.now())
     is_collected = Column(Boolean, default=False)
     
+class TrashFullNotification(Base):
+    __tablename__ = "trash_full_notifications"
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    detected_at = Column(DateTime, server_default=func.now())
+    message = Column(String, default="The bin is full!")
+    is_full = Column(Boolean, default=True)

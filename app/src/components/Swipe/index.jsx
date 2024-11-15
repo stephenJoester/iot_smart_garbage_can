@@ -6,8 +6,13 @@ import { Pagination } from 'swiper/modules';
 
 const Swipe = ({children}) => {
   return (
-    <div className='h-full'>
+    <div className='h-full mb-5'>
         <Swiper
+            cssMode={true}
+            preventClicks={false}
+            preventClicksPropagation={false}
+            simulateTouch={false}
+            touchStartForcePreventDefault={false}
             pagination={{ clickable: true }} 
             modules={[Pagination]}
             className='h-full'   

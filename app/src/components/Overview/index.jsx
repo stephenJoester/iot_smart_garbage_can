@@ -3,19 +3,40 @@ import { FaRegCircleCheck } from "react-icons/fa6";
 import { Gauge } from 'react-circular-gauge'
 import CustomSwitch from '../Switch';
 import {Divider} from "antd"
+import { Alert } from "@mui/material";
+import { supabase } from "../../config/supabaseClient";
 
 const Overview = ({trashData}) => {
     const [percentage, setPercentage] = useState(0)
+    const [notification, setNotification] = useState(false)
     useEffect(() => {
         const calculatePercentage = () => {
             const uncollectedCount = trashData.filter(item => !item.is_collected).length;
-            console.log(`Uncollected trash count: ${uncollectedCount}`);
+            // console.log(`Uncollected trash count: ${uncollectedCount}`);
             setPercentage((uncollectedCount / 100) * 100);
         }
         calculatePercentage()
     }, [trashData])
+
+    useEffect(() => {
+      const trashFullChannel = supabase
+      .channel('trash-full-notifications')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'trash_full_notifications' },
+        payload => {
+          console.log('Trash full notification:', payload.new)
+          setNotification(payload.new)
+        }
+      )
+      .subscribe()
+
+      return () => {
+        supabase.removeChannel(trashFullChannel)
+      }
+    }, [])
   return (
-    <div className="flex flex-col px-4 h-full">
+    <div className="flex flex-col px-4 h-full mb-10">
       <div className="border border-gray-300 rounded-xl my-4 flex p-4">
         <div className="py-2">
           <p className="text-xs text-gray-600">
@@ -51,16 +72,23 @@ const Overview = ({trashData}) => {
             bottomLabelStyle={{ fontSize: "24px" }}
           />
         </div>
+        {notification && notification.is_full ? (
+          <Alert severity="warning">{notification.message}</Alert>
+        ) : notification && !notification.is_full ? (
+          <Alert severity="success">{notification.message}</Alert>
+        ) : (<></>)}
         <Divider className="border-2 border-gray-200" />
         <div className="flex w-full justify-between h-full overflow-auto">
           {/* <div className='w-full h-full max-w-full max-h-full'>
                     <Swipe/>
                 </div> */}
           <div className="w-1/2">
-            <p>Amount of detected trash :</p>
+            <p>Amount of detected trash : {trashData.length}</p>
           </div>
           <Divider type="vertical" className="border-2 border-gray-200 h-1/2" />
-          <div className="w-1/2">Calculated from 1/10/2024 to 1/11/2024</div>
+          <div className="w-1/2">
+            Calculated from 1/10/2024 to {new Date().toLocaleDateString('en-GB')}
+          </div>
         </div>
       </div>
     </div>
