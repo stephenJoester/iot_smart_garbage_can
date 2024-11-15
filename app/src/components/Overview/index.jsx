@@ -9,6 +9,7 @@ import { supabase } from "../../config/supabaseClient";
 const Overview = ({trashData}) => {
     const [percentage, setPercentage] = useState(0)
     const [notification, setNotification] = useState(false)
+    const [showAlert, setShowAlert] = useState(true)
     useEffect(() => {
         const calculatePercentage = () => {
             const uncollectedCount = trashData.filter(item => !item.is_collected).length;
@@ -27,6 +28,7 @@ const Overview = ({trashData}) => {
         payload => {
           console.log('Trash full notification:', payload.new)
           setNotification(payload.new)
+          setShowAlert(true)
         }
       )
       .subscribe()
@@ -72,11 +74,14 @@ const Overview = ({trashData}) => {
             bottomLabelStyle={{ fontSize: "24px" }}
           />
         </div>
-        {notification && notification.is_full ? (
-          <Alert severity="warning">{notification.message}</Alert>
-        ) : notification && !notification.is_full ? (
-          <Alert severity="success">{notification.message}</Alert>
-        ) : (<></>)}
+        {notification && showAlert && (
+          <Alert
+            severity={notification.is_full ? "warning" : "success"}
+            onClose={() => setShowAlert(false)} // Đóng Alert khi nhấn nút close
+          >
+            {notification.message}
+          </Alert>
+        )}
         <Divider className="border-2 border-gray-200" />
         <div className="flex w-full justify-between h-full overflow-auto">
           {/* <div className='w-full h-full max-w-full max-h-full'>
