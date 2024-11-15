@@ -8,6 +8,7 @@ import IsSameOrAfter from "dayjs/plugin/isSameOrAfter";
 import { GoDotFill } from "react-icons/go";
 import { Select, Option } from "@material-tailwind/react";
 import { MobileDatePicker } from "@mui/x-date-pickers";
+import { Pagination } from "@mui/material";
 
 dayjs.extend(isSameOrBefore);
 dayjs.extend(IsSameOrAfter);
@@ -16,42 +17,57 @@ const History = ({ trashData }) => {
     const [filteredData, setFilteredData] = useState([]);
     const [startValue, setStartValue] = useState(dayjs("2024-11-01"));
     const [endValue, setEndValue] = useState(dayjs());
-    const [date, setDate] = useState(null);
     const [label, setLabel] = useState("");
     const [isCollected, setIsCollected] = useState(null);
     const selectRef1 = useRef(null);
     const selectRef2 = useRef(null);
+    const itemsPerPage = 10;
+    const [currentPage, setCurrentPage] = useState(1);
+    const [paginatedData, setPaginatedData] = useState([]);
     const handleOnChangeLabel = (e) => {
         setLabel(e);
     };
     const handleOnChangeStatus = (e) => {
         setIsCollected(e === "true" ? true : e === "false" ? false : null);
-    }
+    };
+    const handlePageChange = (e, page) => {
+        setCurrentPage(page);
+    };
     useEffect(() => {
         const applyFilters = () => {
-          let filtered = trashData;
-    
-          if (label !== "all") {
-            filtered = filtered.filter((item) => item.label.toLowerCase() === label);
-          }
-    
-          if (isCollected !== null) {
-            filtered = filtered.filter((item) => item.is_collected === isCollected);
-          }
-    
-          if (startValue && endValue) {
-            filtered = filtered.filter(
-              (item) =>
-                dayjs(item.detected_at).isSameOrAfter(startValue) &&
-                dayjs(item.detected_at).isSameOrBefore(endValue)
-            );
-          }
-    
-          setFilteredData(filtered);
+            let filtered = trashData;
+            if (label !== "all") {
+                filtered = filtered.filter(
+                    (item) => item.label.toLowerCase() === label
+                );
+            }
+            if (isCollected !== null) {
+                filtered = filtered.filter(
+                    (item) => item.is_collected === isCollected
+                );
+            }
+            if (startValue && endValue) {
+                filtered = filtered.filter(
+                    (item) =>
+                        dayjs(item.detected_at).isSameOrAfter(startValue) &&
+                        dayjs(item.detected_at).isSameOrBefore(endValue)
+                );
+            }
+            setFilteredData(filtered);
+            setCurrentPage(1);
         };
-    
         applyFilters();
-      }, [trashData, label, isCollected, startValue, endValue]);
+    }, [trashData, label, isCollected, startValue, endValue]);
+
+    useEffect(() => {
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        setPaginatedData(filteredData.slice(startIndex, endIndex));
+    }, [filteredData, currentPage]);
+
+    useEffect(() => {
+        setFilteredData(trashData);
+    }, [trashData]);
 
     useEffect(() => {
         if (selectRef1.current) {
@@ -63,7 +79,7 @@ const History = ({ trashData }) => {
     }, []);
     return (
         <div className="flex flex-col px-4 h-full w-full overflow-auto">
-            <div className="max-h-[40vh]">
+            <div className="max-h-[50vh]">
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                     <DemoContainer components={["DatePicker", "DatePicker"]}>
                         <div className="flex w-full justify-between space-x-5">
@@ -112,6 +128,9 @@ const History = ({ trashData }) => {
                                 <Option value="paper" key="3">
                                     Paper
                                 </Option>
+                                <Option value="other" key="4">
+                                    Other
+                                </Option>
                                 {/* {types.map((type, index) => (
                                     <Option key={index+1} value={type.toLowerCase()}>{type}</Option>
                                 ))} */}
@@ -127,12 +146,18 @@ const History = ({ trashData }) => {
                             >
                                 <Option value={null}>All</Option>
                                 <Option value={"true"}>Collected</Option>
-                                <Option value={"false"}>
-                                    Not Collected
-                                </Option>
+                                <Option value={"false"}>Not Collected</Option>
                             </Select>
                         </div>
                     </div>
+                </div>
+                <div className="flex justify-center items-center my-3">
+                    <Pagination
+                        count={Math.ceil(filteredData.length / itemsPerPage)} 
+                        color="primary"
+                        page={currentPage}
+                        onChange={handlePageChange}
+                    />
                 </div>
             </div>
 
@@ -140,7 +165,7 @@ const History = ({ trashData }) => {
                 <h2>Trash detection history</h2>
                 <div className="bg-white shadow-md rounded-lg overflow-auto">
                     <ul>
-                        {filteredData.map((item, index) => (
+                        {paginatedData.map((item, index) => (
                             <li
                                 key={index}
                                 className="border-b border-gray-200 p-4 flex justify-between"
